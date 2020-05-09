@@ -1,0 +1,23 @@
+[package]
+name = "rusty-browser"
+version = "0.1.0"
+authors = ["Arthur Carlsson <arthur@kiron.net>"]
+edition = "2018"
+
+[workspace]
+members = [
+  "html",
+  "web",
+]
+
+[dependencies]
+html = { path = 'html' }
+web = { path = 'web' }
+amethyst = "0.15"
+log = "0.4"
+thiserror = "1.0"
+
+[features]
+default = ["metal"]
+vulkan = ["amethyst/vulkan"]
+metal = ["amethyst/metal"]

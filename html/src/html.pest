@@ -1,0 +1,30 @@
+doctype = { ^"<!DOCTYPE" ~ ^"html" ~ ">" }
+ident = ${ ALPHABETIC+ ~ (ALPHABETIC | DECIMAL_NUMBER | "-")* } 
+unquoted_string = @{ ident }
+quoted_string = @{ "\"" ~ string_text ~ "\"" }
+string = { unquoted_string | quoted_string }
+string_text = ${ string_char* }
+string_char = { !"\"" ~ ANY }
+text = ${ text_char+ }
+text_char = { !(tag_start | end_tag | comment) ~ ANY }
+
+tag = {
+  tag_start ~ attributes ~ tag_ending
+}
+tag_start = @{ "<" ~ ident }
+tag_ending = ${ "/"? ~ ">" }
+end_tag = @{ "</" ~ ident ~ ">" }
+comment = { "<!--" ~ comment_text ~ "-->" }
+comment_text = ${ comment_char* }
+comment_char = { !"-->" ~ ANY }
+attribute = { ident ~ "=" ~ string }
+attributes = { attribute* }
+
+document = _{
+  SOI
+  ~ doctype
+  ~ (tag | end_tag | comment | text)*
+  ~ EOI
+}
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
