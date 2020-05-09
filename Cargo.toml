@@ -18,6 +18,7 @@ log = "0.4"
 thiserror = "1.0"
 
 [features]
-default = ["metal"]
+default = ["empty"]
+empty = ["amethyst/empty"]
 vulkan = ["amethyst/vulkan"]
 metal = ["amethyst/metal"]
