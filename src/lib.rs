@@ -1,50 +1,33 @@
+mod error;
+
+use amethyst::core::shrev::EventChannel;
 use amethyst::{
-  core::transform::TransformBundle,
-  input::{get_key, is_close_requested, is_key_down, VirtualKeyCode},
+  core::transform::{Transform, TransformBundle},
+  input::{get_key, is_close_requested, is_key_down, InputBundle, StringBindings, VirtualKeyCode},
   prelude::*,
   renderer::{
     plugins::{RenderFlat2D, RenderToWindow},
     types::DefaultBackend,
     RenderingBundle,
   },
+  ui::UiBundle,
 };
 use log::info;
-use std::{fmt, io::prelude::*};
+use web::WebBundle;
 
-#[derive(Debug, thiserror::Error)]
-pub enum Error {
-  #[error(transparent)]
-  HtmlError(#[from] html::Error),
-  #[error(transparent)]
-  UrlParseError(#[from] web::url::ParseError),
-  #[error(transparent)]
-  AmethystError(#[from] AmethystError),
-}
-impl From<amethyst::Error> for Error {
-  fn from(error: amethyst::Error) -> Self {
-    Error::AmethystError(AmethystError(error))
-  }
-}
+pub use error::{Error, Result};
 
 #[derive(Debug)]
-pub struct AmethystError(amethyst::Error);
-impl fmt::Display for AmethystError {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{}", self.0)
-  }
-}
-impl std::error::Error for AmethystError {}
-
-pub type Result<T> = std::result::Result<T, Error>;
-
 struct BrowserState {}
 impl SimpleState for BrowserState {
   fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
-    let world = data.world;
+    let url = web::Url::from_directory_path(std::env::current_dir().unwrap()).unwrap();
+    let url = url.join(&std::env::args().nth(1).unwrap()).unwrap();
 
-    //world.register();
-
-    //world.create_entity().with().build();
+    data
+      .world
+      .fetch_mut::<EventChannel<web::WebEvent>>()
+      .single_write(web::WebEvent::Url(url))
   }
 
   fn handle_event(
@@ -69,23 +52,6 @@ impl SimpleState for BrowserState {
 pub fn run() -> Result<()> {
   amethyst::start_logger(Default::default());
 
-  let url = web::Url::from_directory_path(std::env::current_dir().unwrap()).unwrap();
-  let url = url.join(&std::env::args().nth(1).unwrap())?;
-
-  let html_view = web::HtmlView::new();
-  html_view.load(&url);
-
-  let mut source = String::new();
-  match url.scheme() {
-    "file" => {
-      std::io::BufReader::new(std::fs::File::open(url.path()).unwrap())
-        .read_to_string(&mut source)
-        .unwrap();
-    }
-    _ => unimplemented!(),
-  }
-
-  let document = html::parse(&source).unwrap();
   let mut game = init_game(BrowserState {})?;
   game.run();
 
@@ -98,11 +64,14 @@ fn init_game<'a>(state: BrowserState) -> Result<Application<'a, amethyst::GameDa
 
   let game_data = GameDataBuilder::default()
     .with_bundle(TransformBundle::new())?
+    .with_bundle(InputBundle::<StringBindings>::new())?
+    .with_bundle(UiBundle::<StringBindings>::new())?
     .with_bundle(
       RenderingBundle::<DefaultBackend>::new()
         .with_plugin(RenderToWindow::from_config(display_config).with_clear([1.0, 1.0, 1.0, 1.0]))
         .with_plugin(RenderFlat2D::default()),
-    )?;
+    )?
+    .with_bundle(WebBundle::new())?;
 
   Ok(Application::new(".", state, game_data)?)
 }

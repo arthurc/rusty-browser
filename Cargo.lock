@@ -3575,6 +3575,8 @@ version = "0.1.0"
 dependencies = [
  "amethyst 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "html 0.1.0",
+ "specs-hierarchy 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "thiserror 1.0.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 2.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

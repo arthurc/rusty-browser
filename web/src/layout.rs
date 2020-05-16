@@ -1,3 +1,15 @@
-use amethyst::prelude::*;
+use amethyst::ecs::prelude::*;
+use specs_hierarchy::Parent as HParent;
 
-pub fn build_layout(world: &World, node: &html::dom::Node) {}
+#[derive(Debug)]
+pub struct Parent(Entity);
+
+impl HParent for Parent {
+  fn parent_entity(&self) -> Entity {
+    self.0
+  }
+}
+
+impl Component for Parent {
+  type Storage = FlaggedStorage<Self, DenseVecStorage<Self>>;
+}

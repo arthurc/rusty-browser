@@ -8,3 +8,5 @@ edition = "2018"
 html = { path = "../html" }
 url = "2"
 amethyst = "0.15"
+specs-hierarchy = "0.6"
+thiserror = "1.0"
